@@ -16,6 +16,8 @@ typedef std::int16_t i16;
 typedef std::int32_t i32;
 typedef std::int64_t i64;
 
+typedef signed long isize;
+
 typedef float f32;
 typedef double f64;
 
@@ -27,5 +29,7 @@ constexpr u16 U16MAX = std::numeric_limits<u16>::max();
 constexpr u32 U32MAX = std::numeric_limits<u32>::max();
 constexpr u64 U64MAX = std::numeric_limits<u64>::max();
 constexpr usize USIZEMAX = std::numeric_limits<usize>::max();
+
+constexpr f32_2 VECTOR2ZERO = { 0.0f, 0.0f };
 
 #endif
