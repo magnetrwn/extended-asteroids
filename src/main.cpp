@@ -20,7 +20,7 @@ int main() {
             f32 off_x = (j - 2) * WINDOW_W / 5;
             f32 off_y = (i - 2) * WINDOW_H / 5;
 
-            astarr[i * 5 + j] = Asteroid({ WINDOW_W / 2 + off_x, WINDOW_H / 2 + off_y });
+            astarr[i * 5 + j].set_position({ WINDOW_W / 2 + off_x, WINDOW_H / 2 + off_y });
         }
 
     while (!WindowShouldClose()) {

@@ -6,6 +6,7 @@
 
 #include "util.hpp"
 #include "typedef.hpp"
+#include "entity.hpp"
 
 /**
  * @brief The shape of an asteroid.
@@ -47,17 +48,16 @@ struct AsteroidShape {
  * Instead, the shape is created by the get_shape_vtx_array method, which returns the vertexes in relative space,
  * based on the Asteroid position, as well as closing the shape by repeating the first vertex at the end.
  */
-class Asteroid {
+class Asteroid : public Entity {
 private:
     AsteroidShape shape;
-    f32_2 position;
     f32_2 rel_vertexes[AsteroidShape::MAX_VERTEXES + 1]; // Add one vertex to close the drawn shape.
     
 public:
     const usize get_shape_vtx_count() const { return shape.vtx_count + 1; }
 
     const f32_2* get_shape_vtx_array() {
-        for (usize i = 0; i < shape.vtx_count; i++)
+        for (usize i = 0; i < shape.vtx_count; ++i)
             rel_vertexes[i] = { shape.vertexes[i].x + position.x, shape.vertexes[i].y + position.y };
 
         rel_vertexes[shape.vtx_count] = rel_vertexes[0];
@@ -65,8 +65,15 @@ public:
         return rel_vertexes;
     }
 
-    Asteroid(f32_2 position = VECTOR2ZERO) : shape(util::randi(3, AsteroidShape::MAX_VERTEXES)), position(position) {}
-    Asteroid(usize vtx_count, f32_2 position = VECTOR2ZERO) : shape(vtx_count), position(position) {}
+    const void step(f32 dt) {
+        position.x += velocity.x * dt;
+        position.y += velocity.y * dt;
+
+        angle += angular_velocity * dt;
+    }
+
+    Asteroid() : shape(util::randi(3, AsteroidShape::MAX_VERTEXES)) {}
+    Asteroid(usize vtx_count) : shape(vtx_count) {}
 };
 
 #endif
