@@ -3,6 +3,8 @@
 #include "util.hpp"
 
 int main() {
+    static constexpr f32 ANIM_BASE_GAME_FPS = 60.0f;
+
     // [Settings.Window]
     const f32 WINDOW_W = util::cfg_f32("Settings.Window", "WINDOW_W");
     const f32 WINDOW_H = util::cfg_f32("Settings.Window", "WINDOW_H");
@@ -21,17 +23,23 @@ int main() {
             f32 off_y = (i - 2) * WINDOW_H / 5;
 
             astarr[i * 5 + j].set_position({ WINDOW_W / 2 + off_x, WINDOW_H / 2 + off_y });
+            astarr[i * 5 + j].set_angular_velocity(util::randf() * 0.1f - 0.05f);
         }
 
     while (!WindowShouldClose()) {
+        float dt_scale = GetFrameTime() * ANIM_BASE_GAME_FPS;
+
         BeginDrawing();
         ClearBackground(Color{ 0x27, 0x28, 0x22, 0xff });
-        DrawText(std::to_string(GetFPS()).c_str(), 10, 10, 72, RAYWHITE);
+        DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, RAYWHITE);
 
         for (usize i = 0; i < 25; ++i)
             DrawLineStrip(const_cast<Vector2*>(astarr[i].get_shape_vtx_array()), astarr[i].get_shape_vtx_count(), RED);
 
         EndDrawing();
+
+        for (usize i = 0; i < 25; ++i)
+            astarr[i].step(dt_scale);
     }
 
     CloseWindow();

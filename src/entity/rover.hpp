@@ -6,7 +6,12 @@
 
 class Rover : public Entity {
 private:
-    f32_2 rel_vertexes[4];
+    f32_2 rel_vertexes[4] = {
+        { 0.0f, -10.0f },
+        { 5.0f, 5.0f },
+        { 0.0f, 2.5f },
+        { -5.0f, 5.0f }
+    };
 };
 
 #endif

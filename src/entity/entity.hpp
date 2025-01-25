@@ -6,8 +6,7 @@
 /**
  * @brief Base class for all entities.
  *
- * The Entity class provides all private members and get/setters for adding position and movement to every entity.
- * By extending this class, the derived class can have a position, velocity, angle, and angular velocity.
+ * The Entity class provides all protected members and get/setters for adding position and movement to every entity.
  */
 class Entity {
 protected:
@@ -28,6 +27,13 @@ public:
     void set_velocity(f32_2 velocity) { this->velocity = velocity; }
     void set_angle(f32 angle) { this->angle = angle; }
     void set_angular_velocity(f32 angular_velocity) { this->angular_velocity = angular_velocity; }
+
+    void step(f32 dt_scale = 1.0f) {
+        position.x += velocity.x * dt_scale;
+        position.y += velocity.y * dt_scale;
+
+        angle += angular_velocity * dt_scale;
+    }
 };
 
 #endif

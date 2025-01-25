@@ -57,19 +57,17 @@ public:
     const usize get_shape_vtx_count() const { return shape.vtx_count + 1; }
 
     const f32_2* get_shape_vtx_array() {
-        for (usize i = 0; i < shape.vtx_count; ++i)
-            rel_vertexes[i] = { shape.vertexes[i].x + position.x, shape.vertexes[i].y + position.y };
+        float sin_angle = std::sinf(angle);
+        float cos_angle = std::cosf(angle);
 
+        for (usize i = 0; i < shape.vtx_count; ++i) {
+            float rx = shape.vertexes[i].x * cos_angle - shape.vertexes[i].y * sin_angle;
+            float ry = shape.vertexes[i].x * sin_angle + shape.vertexes[i].y * cos_angle;
+            rel_vertexes[i] = { rx + position.x, ry + position.y };
+        }
         rel_vertexes[shape.vtx_count] = rel_vertexes[0];
         
         return rel_vertexes;
-    }
-
-    const void step(f32 dt) {
-        position.x += velocity.x * dt;
-        position.y += velocity.y * dt;
-
-        angle += angular_velocity * dt;
     }
 
     Asteroid() : shape(util::randi(3, AsteroidShape::MAX_VERTEXES)) {}
