@@ -31,10 +31,10 @@ int main() {
 
         BeginDrawing();
         ClearBackground(Color{ 0x27, 0x28, 0x22, 0xff });
-        DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, RAYWHITE);
+        DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, WHITE);
 
         for (usize i = 0; i < 25; ++i)
-            DrawLineStrip(const_cast<Vector2*>(astarr[i].get_shape_vtx_array()), astarr[i].get_shape_vtx_count(), RED);
+            DrawLineStrip(const_cast<Vector2*>(astarr[i].get_shape_vtx_array()), astarr[i].get_shape_vtx_count(), WHITE);
 
         EndDrawing();
 

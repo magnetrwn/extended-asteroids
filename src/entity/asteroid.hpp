@@ -7,6 +7,9 @@
 #include "util.hpp"
 #include "typedef.hpp"
 #include "entity.hpp"
+#include "ltmath.hpp"
+
+using namespace LookupTableMath;
 
 /**
  * @brief The shape of an asteroid.
@@ -17,8 +20,8 @@
  * @note Check MAX_VERTEXES for the maximum amount, and the vtx_count field to check how many are actually used in there.
  */
 struct AsteroidShape {
-    static constexpr usize MAX_VERTEXES = 47;
-    static constexpr f32 SCALE = 23.75f;
+    static constexpr usize MAX_VERTEXES = 31;
+    static constexpr f32 SCALE = 30.0f;
 
     usize vtx_count;
     f32_2 vertexes[MAX_VERTEXES];
@@ -28,7 +31,7 @@ struct AsteroidShape {
             f32 angle = i * (2.0f * PI / static_cast<f32>(vtx_count));
             f32 modulo = util::randf() * (SCALE + 20.0f) + (SCALE * SCALE) / 16.0f;
 
-            vertexes[i] = { modulo * std::cosf(angle), modulo * std::sinf(angle) };
+            vertexes[i] = { modulo * ltcosf(angle), modulo * ltsinf(angle) };
         }
     }
 
@@ -57,8 +60,8 @@ public:
     const usize get_shape_vtx_count() const { return shape.vtx_count + 1; }
 
     const f32_2* get_shape_vtx_array() {
-        float sin_angle = std::sinf(angle);
-        float cos_angle = std::cosf(angle);
+        float sin_angle = ltsinf(angle);
+        float cos_angle = ltcosf(angle);
 
         for (usize i = 0; i < shape.vtx_count; ++i) {
             float rx = shape.vertexes[i].x * cos_angle - shape.vertexes[i].y * sin_angle;
@@ -70,7 +73,7 @@ public:
         return rel_vertexes;
     }
 
-    Asteroid() : shape(util::randi(3, AsteroidShape::MAX_VERTEXES)) {}
+    Asteroid() : shape(util::randi(6, AsteroidShape::MAX_VERTEXES)) {}
     Asteroid(usize vtx_count) : shape(vtx_count) {}
 };
 

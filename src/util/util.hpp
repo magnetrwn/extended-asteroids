@@ -38,14 +38,13 @@ public:
         return original - value;
     }
 
-    inline static f32 randf() {
+    static inline f32 randf() {
         return static_cast<f32>(GetRandomValue(0, RAND_MAX)) / static_cast<f32>(RAND_MAX);
     }
 
-    inline static int randi(const int low, const int high) {
+    static inline int randi(const int low, const int high) {
         return GetRandomValue(low, high);
     }
-
 };
 
 #endif
