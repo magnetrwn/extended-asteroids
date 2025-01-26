@@ -38,7 +38,7 @@ public:
     EntityShapeData data() { return { vtx_count, vertexes }; }
     EntityShapeDataConst data() const { return { vtx_count, vertexes }; }
 
-    EntityShape(usize vtx_count = MAX_VERTEXES) { this->vtx_count = vtx_count; }
+    EntityShape(usize vtx_count = 0) { this->vtx_count = vtx_count; }
     EntityShape(usize vtx_count, const f32_2* vertexes) : vtx_count(vtx_count) {
         for (usize i = 0; i < vtx_count; ++i)
             this->vertexes[i] = vertexes[i];
@@ -59,13 +59,33 @@ class Entity {
 protected:
     EntityShape* shape;
     f32_2 rel_vertexes[EntityShape::MAX_VERTEXES + 1]; // Add one vertex to close the drawn shape.
+    f32_2 bounding_box[2];
     f32_2 position;
     f32_2 velocity;
     f32 angle;
     f32 angular_velocity;
 
+    bool ccw(const f32_2& a, const f32_2& b, const f32_2& c) const {
+        return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
+    }
+
+    void set_bounding_box() {
+        const usize vtx_count = shape->data().vtx_count;
+
+        bounding_box[0] = rel_vertexes[0];
+        bounding_box[1] = rel_vertexes[0];
+
+        for (usize i = 1; i < vtx_count; ++i) {
+            bounding_box[0].x = rel_vertexes[i].x < bounding_box[0].x ? rel_vertexes[i].x : bounding_box[0].x;
+            bounding_box[0].y = rel_vertexes[i].y < bounding_box[0].y ? rel_vertexes[i].y : bounding_box[0].y;
+            bounding_box[1].x = rel_vertexes[i].x > bounding_box[1].x ? rel_vertexes[i].x : bounding_box[1].x;
+            bounding_box[1].y = rel_vertexes[i].y > bounding_box[1].y ? rel_vertexes[i].y : bounding_box[1].y;
+        }
+    }
+
 public:
-    Entity(EntityShape* shape, f32_2 position = { 0.0f, 0.0f }, f32_2 velocity = { 0.0f, 0.0f }, f32 angle = 0.0f, f32 angular_velocity = 0.0f) : shape(shape), position(position), velocity(velocity), angle(angle), angular_velocity(angular_velocity) {}
+    Entity(EntityShape* shape, f32_2 position = { 0.0f, 0.0f }, f32_2 velocity = { 0.0f, 0.0f }, f32 angle = 0.0f, f32 angular_velocity = 0.0f)
+      : shape(shape), position(position), velocity(velocity), angle(angle), angular_velocity(angular_velocity) {}
 
     const f32_2 get_position() const { return position; }
     const f32_2 get_velocity() const { return velocity; }
@@ -99,8 +119,41 @@ public:
     void step(f32 dt_scale = 1.0f) {
         position.x += velocity.x * dt_scale;
         position.y += velocity.y * dt_scale;
-
         angle += angular_velocity * dt_scale;
+        set_bounding_box();
+    }
+
+    bool is_collision(const Entity& other) const {
+        if (this == &other)
+            return false;
+
+        bool bounding_box_collision = (
+            bounding_box[0].x < other.bounding_box[1].x and
+            bounding_box[1].x > other.bounding_box[0].x and
+            bounding_box[0].y < other.bounding_box[1].y and
+            bounding_box[1].y > other.bounding_box[0].y
+        );
+
+        if (!bounding_box_collision)
+            return false;
+
+        const usize vtx_count[2] = { shape->data().vtx_count, other.shape->data().vtx_count };
+        const f32_2* vertexes[2] = { shape->data().vertexes, other.shape->data().vertexes };
+
+        for (usize i = 0; i < vtx_count[0]; ++i) {
+            const f32_2 p1 = rel_vertexes[i];
+            const f32_2 p2 = rel_vertexes[i + 1];
+
+            for (usize j = 0; j < vtx_count[1]; ++j) {
+                const f32_2 q1 = other.rel_vertexes[j];
+                const f32_2 q2 = other.rel_vertexes[j + 1];
+
+                if (ccw(p1, q1, q2) != ccw(p2, q1, q2) and ccw(p1, p2, q1) != ccw(p1, p2, q2))
+                    return true;
+            }
+        }
+
+        return false;
     }
 };
 

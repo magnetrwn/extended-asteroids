@@ -1,6 +1,5 @@
 #include <raylib.h>
 #include "asteroid.hpp"
-#include "rover.hpp"
 #include "util.hpp"
 
 int main() {
@@ -17,8 +16,8 @@ int main() {
         SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(WINDOW_W, WINDOW_H, "Extended Asteroids");
 
-    InitAudioDevice();
-    Sound theme_bgm = LoadSound(util::cfg_string("Resources.Audio", "THEME_BGM_PATH").c_str());
+    //InitAudioDevice();
+    //Sound theme_bgm = LoadSound(util::cfg_string("Resources.Audio", "THEME_BGM_PATH").c_str());
 
     Asteroid astarr[25];
     for (isize i = 0; i < 5; ++i)
@@ -28,16 +27,16 @@ int main() {
 
             astarr[i * 5 + j].set_position({ WINDOW_W / 2 + off_x, WINDOW_H / 2 + off_y });
             astarr[i * 5 + j].set_angular_velocity(util::randf() * 0.1f - 0.05f);
+            astarr[i * 5 + j].set_velocity({ util::randf() * 2.0f - 1.0f, util::randf() * 2.0f - 1.0f });
         }
+    
+    bool already_drawn[25];
 
-    Rover rover;
-    rover.set_position({ WINDOW_W / 2, WINDOW_H / 2 });
-
-    PlaySound(theme_bgm);
+    //PlaySound(theme_bgm);
 
     while (!WindowShouldClose()) {
-        if (!IsSoundPlaying(theme_bgm))
-            PlaySound(theme_bgm);
+        //if (!IsSoundPlaying(theme_bgm))
+        //    PlaySound(theme_bgm);
 
         float dt_scale = GetFrameTime() * ANIM_BASE_GAME_FPS;
 
@@ -46,18 +45,35 @@ int main() {
         DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, WHITE);
 
         for (usize i = 0; i < 25; ++i)
-            DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), WHITE);
+            already_drawn[i] = false;
 
-        DrawLineStrip(const_cast<Vector2*>(rover.get_entity_vtx_array()), rover.get_entity_vtx_count(), WHITE);
-
-        EndDrawing();
+        for (usize i = 0; i < 24; ++i)
+            for (usize j = i + 1; j < 25; ++j)
+                if (astarr[i].is_collision(astarr[j])) {
+                    DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), RED);
+                    DrawLineStrip(const_cast<Vector2*>(astarr[j].get_entity_vtx_array()), astarr[j].get_entity_vtx_count(), RED);
+                    already_drawn[i] = true;
+                    already_drawn[j] = true;
+                }
 
         for (usize i = 0; i < 25; ++i)
+            if (!already_drawn[i])
+                DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), WHITE);
+
+        for (usize i = 0; i < 25; ++i) {
             astarr[i].step(dt_scale);
+
+            if (astarr[i].get_position().x < 0.0f or astarr[i].get_position().x > WINDOW_W)
+                astarr[i].set_position({ astarr[i].get_position().x < 0.0f ? WINDOW_W : 0.0f, astarr[i].get_position().y });
+            if (astarr[i].get_position().y < 0.0f or astarr[i].get_position().y > WINDOW_H)
+                astarr[i].set_position({ astarr[i].get_position().x, astarr[i].get_position().y < 0.0f ? WINDOW_H : 0.0f });
+        }
+
+        EndDrawing();
     }
 
-    UnloadSound(theme_bgm);
-    CloseAudioDevice();
+    //UnloadSound(theme_bgm);
+    //CloseAudioDevice();
     CloseWindow();
     return 0;
 }
