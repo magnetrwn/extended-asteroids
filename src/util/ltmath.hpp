@@ -9,7 +9,7 @@
  * @brief Utility namespace for trigonometric functions using a lookup table.
  */
 namespace LookupTableMath {
-    static constexpr int TABLE_SIZE = 80;
+    static constexpr int TABLE_SIZE = 40;
 
     static std::array<float, TABLE_SIZE> sin_table;
     static std::array<float, TABLE_SIZE> cos_table;

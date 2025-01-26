@@ -19,14 +19,13 @@ using namespace LookupTableMath;
  *
  * @note Check MAX_VERTEXES for the maximum amount, and the vtx_count field to check how many are actually used in there.
  */
-struct AsteroidShape {
-    static constexpr usize MAX_VERTEXES = 31;
+struct AsteroidShape : public EntityShape {
     static constexpr f32 SCALE = 30.0f;
 
-    usize vtx_count;
-    f32_2 vertexes[MAX_VERTEXES];
-
     void init_shape() {
+        usize vtx_count = data().vtx_count;
+        f32_2* vertexes = data().vertexes;
+
         for (usize i = 0; i < vtx_count; i++) {
             f32 angle = i * (2.0f * PI / static_cast<f32>(vtx_count));
             f32 modulo = util::randf() * (SCALE + 20.0f) + (SCALE * SCALE) / 16.0f;
@@ -35,7 +34,7 @@ struct AsteroidShape {
         }
     }
 
-    AsteroidShape(usize vtx_count) : vtx_count(vtx_count) {
+    AsteroidShape(usize vtx_count) : EntityShape(vtx_count) {
         if (vtx_count > MAX_VERTEXES or vtx_count <= 2)
             throw std::runtime_error("AsteroidShape::AsteroidShape must have 2 < n <= " + std::to_string(MAX_VERTEXES) + " vertexes.");
         
@@ -54,27 +53,10 @@ struct AsteroidShape {
 class Asteroid : public Entity {
 private:
     AsteroidShape shape;
-    f32_2 rel_vertexes[AsteroidShape::MAX_VERTEXES + 1]; // Add one vertex to close the drawn shape.
     
 public:
-    const usize get_shape_vtx_count() const { return shape.vtx_count + 1; }
-
-    const f32_2* get_shape_vtx_array() {
-        float sin_angle = ltsinf(angle);
-        float cos_angle = ltcosf(angle);
-
-        for (usize i = 0; i < shape.vtx_count; ++i) {
-            float rx = shape.vertexes[i].x * cos_angle - shape.vertexes[i].y * sin_angle;
-            float ry = shape.vertexes[i].x * sin_angle + shape.vertexes[i].y * cos_angle;
-            rel_vertexes[i] = { rx + position.x, ry + position.y };
-        }
-        rel_vertexes[shape.vtx_count] = rel_vertexes[0];
-        
-        return rel_vertexes;
-    }
-
-    Asteroid() : shape(util::randi(6, AsteroidShape::MAX_VERTEXES)) {}
-    Asteroid(usize vtx_count) : shape(vtx_count) {}
+    Asteroid() : Entity(&shape), shape(util::randi(6, AsteroidShape::MAX_VERTEXES)) {}
+    Asteroid(usize vtx_count) : Entity(&shape), shape(vtx_count) {}
 };
 
 #endif

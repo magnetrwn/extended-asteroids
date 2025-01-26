@@ -4,14 +4,13 @@
 #include "typedef.hpp"
 #include "entity.hpp"
 
+struct RoverShape : public EntityShape {
+
+};
+
 class Rover : public Entity {
 private:
-    f32_2 rel_vertexes[4] = {
-        { 0.0f, -10.0f },
-        { 5.0f, 5.0f },
-        { 0.0f, 2.5f },
-        { -5.0f, 5.0f }
-    };
+    
 };
 
 #endif

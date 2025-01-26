@@ -34,7 +34,7 @@ int main() {
         DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, WHITE);
 
         for (usize i = 0; i < 25; ++i)
-            DrawLineStrip(const_cast<Vector2*>(astarr[i].get_shape_vtx_array()), astarr[i].get_shape_vtx_count(), WHITE);
+            DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), WHITE);
 
         EndDrawing();
 
