@@ -1,5 +1,6 @@
 #include <raylib.h>
 #include "asteroid.hpp"
+#include "rover.hpp"
 #include "util.hpp"
 
 int main() {
@@ -16,6 +17,9 @@ int main() {
         SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(WINDOW_W, WINDOW_H, "Extended Asteroids");
 
+    InitAudioDevice();
+    Sound theme_bgm = LoadSound(util::cfg_string("Resources.Audio", "THEME_BGM_PATH").c_str());
+
     Asteroid astarr[25];
     for (isize i = 0; i < 5; ++i)
         for (isize j = 0; j < 5; ++j) {
@@ -26,7 +30,15 @@ int main() {
             astarr[i * 5 + j].set_angular_velocity(util::randf() * 0.1f - 0.05f);
         }
 
+    Rover rover;
+    rover.set_position({ WINDOW_W / 2, WINDOW_H / 2 });
+
+    PlaySound(theme_bgm);
+
     while (!WindowShouldClose()) {
+        if (!IsSoundPlaying(theme_bgm))
+            PlaySound(theme_bgm);
+
         float dt_scale = GetFrameTime() * ANIM_BASE_GAME_FPS;
 
         BeginDrawing();
@@ -36,12 +48,16 @@ int main() {
         for (usize i = 0; i < 25; ++i)
             DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), WHITE);
 
+        DrawLineStrip(const_cast<Vector2*>(rover.get_entity_vtx_array()), rover.get_entity_vtx_count(), WHITE);
+
         EndDrawing();
 
         for (usize i = 0; i < 25; ++i)
             astarr[i].step(dt_scale);
     }
 
+    UnloadSound(theme_bgm);
+    CloseAudioDevice();
     CloseWindow();
     return 0;
 }

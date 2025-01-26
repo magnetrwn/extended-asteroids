@@ -47,8 +47,7 @@ struct AsteroidShape : public EntityShape {
  *
  * The asteroid is a simple entity that has a shape and a position.
  * While the shape data is stored by the AsteroidShape struct, these values aren't used directly.
- * Instead, the shape is created by the get_shape_vtx_array method, which returns the vertexes in relative space,
- * based on the Asteroid position, as well as closing the shape by repeating the first vertex at the end.
+ * Instead, the Entity this class inherits from uses the shape data to calculate the final relative position of the vertexes.
  */
 class Asteroid : public Entity {
 private:
