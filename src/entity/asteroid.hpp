@@ -1,7 +1,6 @@
 #ifndef ASTEROID_HPP_
 #define ASTEROID_HPP_
 
-#include <stdexcept>
 #include <cmath>
 
 #include "util.hpp"
@@ -20,24 +19,21 @@ using namespace LookupTableMath;
  * @note Check MAX_VERTEXES for the maximum amount, and the vtx_count field to check how many are actually used in there.
  */
 struct AsteroidShape : public EntityShape {
-    static constexpr f32 SCALE = 30.0f;
+    f32 scale;
 
     void init_shape() {
         usize vtx_count = data().vtx_count;
         f32_2* vertexes = data().vertexes;
 
         for (usize i = 0; i < vtx_count; i++) {
-            f32 angle = i * (2.0f * PI / static_cast<f32>(vtx_count));
-            f32 modulo = util::randf() * (SCALE + 20.0f) + (SCALE * SCALE) / 16.0f;
+            f32 angle = i * (2.0f * M_PI / static_cast<f32>(vtx_count));
+            f32 modulo = util::randf() * (scale + 20.0f) + (scale * scale) / 16.0f;
 
             vertexes[i] = { modulo * ltcosf(angle), modulo * ltsinf(angle) };
         }
     }
 
-    AsteroidShape(usize vtx_count) : EntityShape(vtx_count) {
-        if (vtx_count > MAX_VERTEXES or vtx_count <= 2)
-            throw std::runtime_error("AsteroidShape::AsteroidShape must have 2 < n <= " + std::to_string(MAX_VERTEXES) + " vertexes.");
-        
+    AsteroidShape(usize vtx_count, f32 scale) : EntityShape(vtx_count), scale(scale) {
         init_shape();
     }
 };
@@ -54,8 +50,8 @@ private:
     AsteroidShape shape;
     
 public:
-    Asteroid() : Entity(&shape), shape(util::randi(6, AsteroidShape::MAX_VERTEXES)) {}
-    Asteroid(usize vtx_count) : Entity(&shape), shape(vtx_count) {}
+    Asteroid() : Entity(&shape), shape(util::randi(6, AsteroidShape::MAX_VERTEXES), util::randf() * 50.0f + 5.0f) {}
+    Asteroid(usize vtx_count, f32 scale) : Entity(&shape), shape(vtx_count, scale) {}
 };
 
 #endif

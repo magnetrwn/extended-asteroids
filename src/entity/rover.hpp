@@ -4,6 +4,11 @@
 #include "typedef.hpp"
 #include "entity.hpp"
 
+/**
+ * @brief The shape of a rover.
+ *
+ * Simple struct holding constant values for the rover's shape.
+ */
 struct RoverShape : public EntityShape {
     void init_shape() {
         f32_2* vertexes = data().vertexes;
@@ -17,6 +22,9 @@ struct RoverShape : public EntityShape {
     RoverShape() : EntityShape(4) { init_shape(); }
 };
 
+/**
+ * @brief A rover entity.
+ */
 class Rover : public Entity {
 private:
     RoverShape shape;

@@ -6,6 +6,7 @@ target_include_directories(asteroids PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/entity
     ${CMAKE_CURRENT_SOURCE_DIR}/util
+    ${CMAKE_CURRENT_SOURCE_DIR}/view
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib inipp)

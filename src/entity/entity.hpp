@@ -69,7 +69,7 @@ protected:
         return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
     }
 
-    void set_bounding_box() {
+    void update_bounding_box() {
         const usize vtx_count = shape->data().vtx_count;
 
         bounding_box[0] = rel_vertexes[0];
@@ -122,7 +122,8 @@ public:
         position.x += velocity.x * dt_scale;
         position.y += velocity.y * dt_scale;
         angle += angular_velocity * dt_scale;
-        set_bounding_box();
+
+        update_bounding_box();
     }
 
     bool is_collision(const Entity& other) const {

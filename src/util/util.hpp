@@ -45,6 +45,13 @@ public:
     static inline int randi(const int low, const int high) {
         return GetRandomValue(low, high);
     }
+
+    static inline void offsetv(Vector2* vec, usize n, const Vector2& offset) {
+        for (usize i = 0; i < n; ++i) {
+            vec[i].x += offset.x;
+            vec[i].y += offset.y;
+        }
+    }
 };
 
 #endif
