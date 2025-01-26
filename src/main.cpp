@@ -29,8 +29,6 @@ int main() {
             astarr[i * 5 + j].set_angular_velocity(util::randf() * 0.1f - 0.05f);
             astarr[i * 5 + j].set_velocity({ util::randf() * 2.0f - 1.0f, util::randf() * 2.0f - 1.0f });
         }
-    
-    bool already_drawn[25];
 
     //PlaySound(theme_bgm);
 
@@ -44,21 +42,17 @@ int main() {
         ClearBackground(Color{ 0x27, 0x28, 0x22, 0xff });
         DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, WHITE);
 
-        for (usize i = 0; i < 25; ++i)
-            already_drawn[i] = false;
-
         for (usize i = 0; i < 24; ++i)
             for (usize j = i + 1; j < 25; ++j)
                 if (astarr[i].is_collision(astarr[j])) {
-                    DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), RED);
-                    DrawLineStrip(const_cast<Vector2*>(astarr[j].get_entity_vtx_array()), astarr[j].get_entity_vtx_count(), RED);
-                    already_drawn[i] = true;
-                    already_drawn[j] = true;
+                    f32_2 pos_i = astarr[i].get_position();
+                    f32_2 pos_j = astarr[j].get_position();
+                    astarr[i].add_position({ (pos_i.x - pos_j.x) * 0.01f, (pos_i.y - pos_j.y) * 0.01f });
+                    astarr[j].add_position({ (pos_j.x - pos_i.x) * 0.01f, (pos_j.y - pos_i.y) * 0.01f });
                 }
 
         for (usize i = 0; i < 25; ++i)
-            if (!already_drawn[i])
-                DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), WHITE);
+            DrawLineStrip(const_cast<Vector2*>(astarr[i].get_entity_vtx_array()), astarr[i].get_entity_vtx_count(), WHITE);
 
         for (usize i = 0; i < 25; ++i) {
             astarr[i].step(dt_scale);

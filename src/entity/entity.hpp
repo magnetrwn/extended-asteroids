@@ -94,6 +94,8 @@ public:
 
     void set_position(f32_2 position) { this->position = position; }
     void set_velocity(f32_2 velocity) { this->velocity = velocity; }
+    void add_position(f32_2 position) { this->position.x += position.x; this->position.y += position.y; }
+    void add_velocity(f32_2 velocity) { this->velocity.x += velocity.x; this->velocity.y += velocity.y; }
     void set_angle(f32 angle) { this->angle = angle; }
     void set_angular_velocity(f32 angular_velocity) { this->angular_velocity = angular_velocity; }
 
