@@ -58,10 +58,10 @@ public:
     }
 
     const f32_2* get_triangle_pair(Direction direction) {
-        const f32_2* vtx = shape.data().vertexes;
+        const f32_2* vtx = rel_vertexes;
 
         switch (direction) {
-        case DOWN:
+        case UP:
             triangle_pair[0] = vtx[0];
             triangle_pair[1] = vtx[1];
             triangle_pair[2] = vtx[3];
@@ -69,7 +69,7 @@ public:
             triangle_pair[4] = vtx[5];
             triangle_pair[5] = vtx[3];
             break;
-        case UP:
+        case DOWN:
             triangle_pair[0] = vtx[1];
             triangle_pair[1] = vtx[2];
             triangle_pair[2] = vtx[3];
@@ -77,7 +77,7 @@ public:
             triangle_pair[4] = vtx[4];
             triangle_pair[5] = vtx[3];
             break;
-        case RIGHT:
+        case LEFT:
             triangle_pair[0] = vtx[0];
             triangle_pair[1] = vtx[1];
             triangle_pair[2] = vtx[3];
@@ -85,7 +85,7 @@ public:
             triangle_pair[4] = vtx[3];
             triangle_pair[5] = vtx[1];
             break;
-        case LEFT:
+        case RIGHT:
             triangle_pair[0] = vtx[0];
             triangle_pair[1] = vtx[3];
             triangle_pair[2] = vtx[5];

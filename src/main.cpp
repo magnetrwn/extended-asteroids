@@ -4,6 +4,9 @@
 #include "rover.hpp"
 #include "world.hpp"
 #include "smoothcam.hpp"
+#include "ltmath.hpp"
+
+using namespace LookupTableMath;
 
 void draw(Entity* e, f32_2 offset, Color color) {
     Vector2* vtx = const_cast<Vector2*>(e->get_entity_vtx_array());
@@ -19,6 +22,8 @@ void draw_fill(const f32_2* vertexes, usize vtx_count, f32_2 offset, Color color
 
 int main() {
     static constexpr f32 ANIM_BASE_GAME_FPS = 60.0f;
+    static constexpr f32 MAX_ROVER_VEL = 9.0f;
+    static constexpr f32 MIN_ROVER_VEL = -MAX_ROVER_VEL;
 
     // [Settings.Window]
     const f32 WINDOW_W = util::cfg_f32("Settings.Window", "WINDOW_W");
@@ -47,13 +52,23 @@ int main() {
         //if (!IsSoundPlaying(theme_bgm))
         //    PlaySound(theme_bgm);
 
-        const float dt_scale = GetFrameTime() * ANIM_BASE_GAME_FPS;
+        const f32 dt_scale = GetFrameTime() * ANIM_BASE_GAME_FPS;
+        
         f32_2 rover_vel = world.get_rover().get_velocity();
 
-        const u8 rover_up_vel_to_alpha = (rover_vel.y < 0.0f) ? static_cast<u8>(-rover_vel.y * 50.0f) : 0;
-        const u8 rover_down_vel_to_alpha = (rover_vel.y > 0.0f) ? static_cast<u8>(rover_vel.y * 50.0f) : 0;
-        const u8 rover_left_vel_to_alpha = (rover_vel.x < 0.0f) ? static_cast<u8>(-rover_vel.x * 50.0f) : 0;
-        const u8 rover_right_vel_to_alpha = (rover_vel.x > 0.0f) ? static_cast<u8>(rover_vel.x * 50.0f) : 0;
+        const f32_2 centered_view_of_rover = { world.get_rover().get_position().x - WINDOW_W / 2, world.get_rover().get_position().y - WINDOW_H / 2 };
+
+        const f32 rover_angle = world.get_rover().get_angle();
+        const f32_2 rover_fill_pos = { 
+            world.get_position().x - cam.get().x,
+            world.get_position().y - cam.get().y
+        };
+        const u8 rover_alphas[4] = {
+            static_cast<u8>((1 + ltcosf(rover_angle)) * 255.0f / 4.0f),
+            static_cast<u8>((1 + ltcosf(rover_angle + M_PI)) * 255.0f / 4.0f),
+            static_cast<u8>((1 + ltcosf(rover_angle + 3 * M_PI / 2)) * 255.0f / 4.0f),
+            static_cast<u8>((1 + ltcosf(rover_angle + M_PI / 2)) * 255.0f / 4.0f)
+        };
 
         BeginDrawing();
 
@@ -62,11 +77,13 @@ int main() {
         for (usize i = 0; i < world.get_asteroid_count(); ++i)
             draw(&world.get_asteroid(i), world.get_position(), WHITE);
         draw(&world.get_rover(), world.get_position(), GREEN);
-        //DrawCircle(rel_rover_pos.x, rel_rover_pos.y, 5.0f, RED); // for a future fuel mechanic, destroy asteroids to get circles for fuel/attacks
-        draw_fill(world.get_rover().get_triangle_pair(Rover::UP), 6, cam.get(), Color{ 0x00, 0xff, 0x00, rover_up_vel_to_alpha });
-        draw_fill(world.get_rover().get_triangle_pair(Rover::DOWN), 6, cam.get(), Color{ 0x00, 0xff, 0x00, rover_down_vel_to_alpha });
-        draw_fill(world.get_rover().get_triangle_pair(Rover::LEFT), 6, cam.get(), Color{ 0x00, 0xff, 0x00, rover_left_vel_to_alpha });
-        draw_fill(world.get_rover().get_triangle_pair(Rover::RIGHT), 6, cam.get(), Color{ 0x00, 0xff, 0x00, rover_right_vel_to_alpha });
+
+        //DrawCircle(rover_fill_pos.x, rover_fill_pos.y, 50.0f, RED); // TODO for a future fuel mechanic, destroy asteroids to get circles for fuel/attacks
+
+        draw_fill(world.get_rover().get_triangle_pair(Rover::UP), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[0] });
+        draw_fill(world.get_rover().get_triangle_pair(Rover::DOWN), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[1] });
+        draw_fill(world.get_rover().get_triangle_pair(Rover::LEFT), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[2] });
+        draw_fill(world.get_rover().get_triangle_pair(Rover::RIGHT), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[3] });
 
         EndDrawing();
 
@@ -84,13 +101,13 @@ int main() {
 
         rover_vel = world.get_rover().get_velocity();
         f32 rover_angular_vel = world.get_rover().get_angular_velocity();
-        util::clamp_lh(rover_vel.x, -9.0f, 9.0f);
-        util::clamp_lh(rover_vel.y, -9.0f, 9.0f);
+        util::clamp_lh(rover_vel.x, MIN_ROVER_VEL, MAX_ROVER_VEL);
+        util::clamp_lh(rover_vel.y, MIN_ROVER_VEL, MAX_ROVER_VEL);
         util::clamp_lh(rover_angular_vel, -0.1f, 0.1f);
         world.get_rover().set_velocity(rover_vel);
         world.get_rover().set_angular_velocity(rover_angular_vel);
 
-        cam.target({ world.get_rover().get_position().x - WINDOW_W / 2, world.get_rover().get_position().y - WINDOW_H / 2 });
+        cam.target(centered_view_of_rover);
         world.step(dt_scale);
         cam.step(dt_scale);
         world.set_position(cam.get());

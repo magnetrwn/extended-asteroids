@@ -114,7 +114,7 @@ public:
         angle += angular_velocity * dt_scale;
 
         update_bounding_box();
-        DrawRectangleLines(bounding_box[0].x, bounding_box[0].y, bounding_box[1].x - bounding_box[0].x, bounding_box[1].y - bounding_box[0].y, RED);
+        //DrawRectangleLines(bounding_box[0].x, bounding_box[0].y, bounding_box[1].x - bounding_box[0].x, bounding_box[1].y - bounding_box[0].y, RED);
     
         const usize vtx_count = shape->data().vtx_count;
         const f32_2* vertexes = shape->data().vertexes;
@@ -127,8 +127,8 @@ public:
             float ry = vertexes[i].x * sin_angle + vertexes[i].y * cos_angle;
             rel_vertexes[i] = { rx + position.x, ry + position.y };
         }
-        rel_vertexes[vtx_count] = rel_vertexes[0];
         
+        rel_vertexes[vtx_count] = rel_vertexes[0];
     }
 
     bool is_collision(const Entity& other) const {
