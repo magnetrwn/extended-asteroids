@@ -36,21 +36,28 @@ int main() {
         SetConfigFlags(FLAG_VSYNC_HINT);
     InitWindow(WINDOW_W, WINDOW_H, "Extended Asteroids");
 
-    //InitAudioDevice();
-    //Sound theme_bgm = LoadSound(util::cfg_string("Resources.Audio", "THEME_BGM_PATH").c_str());
+    InitAudioDevice();
+    Sound theme_bgm = LoadSound(util::cfg_string("Resources.Audio", "THEME_BGM_PATH").c_str());
+    SetSoundVolume(theme_bgm, 0.5f);
 
-    World world({ 0.0f, 0.0f }, { WINDOW_W, WINDOW_H });
+    World world(
+        { 0.0f, 0.0f }, 
+        { WINDOW_W, WINDOW_H }, 
+        [] { PlaySound(LoadSound(util::cfg_string("Resources.Audio", "MOONCOIN_SFX_PATH").c_str())); }, 
+        [] { PlaySound(LoadSound(util::cfg_string("Resources.Audio", "COLLISION_SFX_PATH").c_str())); }
+    );
     world.get_rover().set_position({ WINDOW_W / 2, WINDOW_H / 2 });
 
     SmoothCamera cam({ 0.0f, 0.0f });
 
-    //PlaySound(theme_bgm);
+    PlaySound(theme_bgm);
 
     double next_asteroid_spawn = GetTime();
+    double next_mooncoin_spawn = GetTime();
 
     while (!WindowShouldClose()) {
-        //if (!IsSoundPlaying(theme_bgm))
-        //    PlaySound(theme_bgm);
+        if (!IsSoundPlaying(theme_bgm))
+            PlaySound(theme_bgm);
 
         const f32 dt_scale = GetFrameTime() * ANIM_BASE_GAME_FPS;
         
@@ -73,8 +80,12 @@ int main() {
         BeginDrawing();
 
         ClearBackground(Color{ 0x27, 0x28, 0x22, 0xff });
+        for (usize i = 0; i < world.get_mooncoin_count(); ++i)
+            draw(&world.get_mooncoin(i), world.get_position(), Color{ 0x00, 0xff, 0x00, 0xff });
+
         for (usize i = 0; i < world.get_asteroid_count(); ++i)
             draw(&world.get_asteroid(i), world.get_position(), WHITE);
+
         draw(&world.get_rover(), world.get_position(), GREEN);
 
         //DrawCircle(rover_fill_pos.x, rover_fill_pos.y, 50.0f, RED); // TODO for a future fuel mechanic, destroy asteroids to get circles for fuel/attacks
@@ -92,17 +103,20 @@ int main() {
         DrawRectangle(0, WINDOW_H - 80, WINDOW_W, 80, Color{ 0x20, 0x20, 0x20, 0xa0 });
 
         DrawText("SPEED", 10, WINDOW_H - 46, 30, WHITE);
-        DrawRectangle(10, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
-        DrawRectangle(10, WINDOW_H - 54, 400 * static_cast<f32>(rover_vel.x * rover_vel.x + rover_vel.y * rover_vel.y) / (MAX_ROVER_VEL * MAX_ROVER_VEL) / 2, 6, Color{ 0x00, 0xff, 0x00, 0xff });
+        DrawRectangle(9, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
+        DrawRectangle(9, WINDOW_H - 54, 400 * static_cast<f32>(rover_vel.x * rover_vel.x + rover_vel.y * rover_vel.y) / (MAX_ROVER_VEL * MAX_ROVER_VEL) / 2, 6, Color{ 0x00, 0xff, 0x00, 0xff });
 
         DrawText("HEADING", 440, WINDOW_H - 46, 30, WHITE);
-        DrawRectangle(440, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
-        DrawRectangle(440 + 200 + 199 * ltsinf(rover_angle), WINDOW_H - 54, 10, 6, Color{ 0x00, 0xff, 0x00, 0xff });
+        DrawRectangle(439, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
+        DrawRectangle(439 + 200 + 199 * ltsinf(rover_angle), WINDOW_H - 54, 10, 6, Color{ 0x00, 0xff, 0x00, 0xff });
 
         DrawText("HEALTH", 870, WINDOW_H - 46, 30, WHITE);
-        DrawRectangle(870, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
-        DrawRectangle(870, WINDOW_H - 54, 400 * world.get_rover().get_health() / Rover::DEFAULT_MAX_HEALTH, 6, Color{ 0x00, 0xff, 0x00, 0xff });
+        DrawRectangle(869, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
+        DrawRectangle(869, WINDOW_H - 54, 400 * world.get_rover().get_health() / Rover::DEFAULT_MAX_HEALTH, 6, Color{ 0x00, 0xff, 0x00, 0xff });
         
+        DrawText("MOONCOINS", 1300, WINDOW_H - 54, 30, WHITE);
+        DrawText(std::to_string(world.get_collected_mooncoins()).c_str(), 1550, WINDOW_H - 76, 80, WHITE);
+
         if (world.get_rover().get_health() <= 0.0f) {
             DrawText("GAME OVER", WINDOW_W / 2 - 100, WINDOW_H / 2 - 50, 50, WHITE);
             EndDrawing();
@@ -138,14 +152,19 @@ int main() {
 
         world.get_rover().add_health(-0.15f * dt_scale);
 
-        if (GetTime() > next_asteroid_spawn + 2.5f) {
+        if (GetTime() > next_asteroid_spawn + 1.55f) {
             world.spawn_asteroid_nearby(centered_view_of_rover, 2400.0f);
             next_asteroid_spawn = GetTime();
         }
+
+        if (GetTime() > next_mooncoin_spawn + 0.75f) {
+            world.spawn_mooncoin_nearby(centered_view_of_rover, 4000.0f);
+            next_mooncoin_spawn = GetTime();
+        }
     }
 
-    //UnloadSound(theme_bgm);
-    //CloseAudioDevice();
-    //CloseWindow();
+    UnloadSound(theme_bgm);
+    CloseAudioDevice();
+    CloseWindow();
     return 0;
 }

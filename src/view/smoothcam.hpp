@@ -13,7 +13,7 @@ private:
     f32_2 target_pos;
 
 public:
-    SmoothCamera(f32_2 pos) : OK_DIST(0.05f), MAX_SPEED(0.3f), DIST_SCALE(0.06f), current_pos(pos), target_pos(pos) {}
+    SmoothCamera(f32_2 pos) : OK_DIST(0.05f), MAX_SPEED(0.5f), DIST_SCALE(0.06f), current_pos(pos), target_pos(pos) {}
 
     inline f32_2 get() const { return current_pos; }
     inline void set(f32_2 pos) { current_pos = pos; target_pos = pos; }
