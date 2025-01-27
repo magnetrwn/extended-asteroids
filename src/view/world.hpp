@@ -23,7 +23,8 @@ class World {
 private:
     static constexpr usize CIRCULAR_BUFFER_ASTEROIDS = 192;
     static constexpr f32 COLLISION_PUSHBACK = 0.04f;
-    static constexpr f32 CULLING_MARGIN = 360.0f;
+    static constexpr f32 CULLING_MARGIN = 3600.0f;
+    static constexpr f32 RANDOMIZER_RANGE = 19000.0f;
 
     struct AsteroidCull {
         Asteroid el;
@@ -68,7 +69,12 @@ public:
     }
 
     void randomize_asteroid(usize index) {
-        asteroids[index].el.set_position({ util::randf() * 10000.0f, util::randf() * 10000.0f });
+        asteroids[index].el.set_position(
+            { 
+                util::randf() * RANDOMIZER_RANGE - RANDOMIZER_RANGE / 2, 
+                util::randf() * RANDOMIZER_RANGE - RANDOMIZER_RANGE / 2 
+            }
+        );
         asteroids[index].el.set_angular_velocity(util::randf() * 0.1f - 0.05f);
         asteroids[index].el.set_velocity({ util::randf() * 2.0f - 1.0f, util::randf() * 2.0f - 1.0f });
     
@@ -79,7 +85,12 @@ public:
             for (usize i = 0; i < get_asteroid_count() - 1; ++i) {
                 if (asteroids[index].el.is_collision(asteroids[i].el)) {
 
-                    asteroids[index].el.set_position({ util::randf() * 10000.0f + 1000.0f * static_cast<f32>(i), util::randf() * 10000.0f + 1000.0f * static_cast<f32>(i) });
+                    asteroids[index].el.set_position(
+                        { 
+                            util::randf() * RANDOMIZER_RANGE - RANDOMIZER_RANGE / 2 + (RANDOMIZER_RANGE / 5) * static_cast<f32>(i), 
+                            util::randf() * RANDOMIZER_RANGE - RANDOMIZER_RANGE / 2 + (RANDOMIZER_RANGE / 5) * static_cast<f32>(i)
+                        }
+                    );
                     asteroids[index].el.set_angular_velocity(util::randf() * 0.1f - 0.05f);
                     asteroids[index].el.set_velocity({ util::randf() * 2.0f - 1.0f, util::randf() * 2.0f - 1.0f });
 
