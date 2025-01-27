@@ -12,7 +12,7 @@ make -j4
 mv compile_commands.json ../
 
 rm asteroids.zip || true
-zip -r9 asteroids.zip asteroids asteroids.ini res
+zip -r9 asteroids.zip asteroids asteroids.ini res LICENSE
 
 ./asteroids
 cd ..
