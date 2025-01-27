@@ -165,6 +165,10 @@ public:
                         (vel_r.y - vel_i.y) * COLLISION_PUSHBACK_ROVER_V * dt_scale 
                     }
                 );
+
+                f32 damage = (vel_i.x * vel_i.x + vel_i.y * vel_i.y - vel_r.x * vel_r.x + vel_r.y * vel_r.y);
+                damage *= damage * 0.03f;
+                rover.add_health(-damage);
             }
         }
 

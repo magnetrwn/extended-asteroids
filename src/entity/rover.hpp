@@ -34,13 +34,20 @@ class Rover : public Entity {
 private:
     RoverShape shape;
     f32_2 triangle_pair[6];
+    f32 health;
 
 public:
+    static constexpr f32 DEFAULT_MAX_HEALTH = 1000.0f;
+
     enum Direction {
         UP, DOWN, LEFT, RIGHT
     };
 
-    Rover() : Entity(&shape) {}
+    Rover(f32 health = DEFAULT_MAX_HEALTH) : Entity(&shape), health(health) {}
+
+    f32 get_health() const { return health; }
+    void set_health(f32 health) { this->health = health; }
+    void add_health(f32 health) { this->health += health; }
 
     void add_velocity_forward(f32 velocity_mod) {
         const f32 fwd_angle = angle - M_PI / 2.0f;

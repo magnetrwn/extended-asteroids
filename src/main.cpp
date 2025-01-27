@@ -73,7 +73,6 @@ int main() {
         BeginDrawing();
 
         ClearBackground(Color{ 0x27, 0x28, 0x22, 0xff });
-        DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, WHITE);
         for (usize i = 0; i < world.get_asteroid_count(); ++i)
             draw(&world.get_asteroid(i), world.get_position(), WHITE);
         draw(&world.get_rover(), world.get_position(), GREEN);
@@ -84,6 +83,31 @@ int main() {
         draw_fill(world.get_rover().get_triangle_pair(Rover::DOWN), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[1] });
         draw_fill(world.get_rover().get_triangle_pair(Rover::LEFT), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[2] });
         draw_fill(world.get_rover().get_triangle_pair(Rover::RIGHT), 6, rover_fill_pos, Color{ 0x00, 0xff, 0x00, rover_alphas[3] });
+
+        /* UI */
+
+        DrawRectangle(0, 0, WINDOW_W, 80, Color{ 0x20, 0x20, 0x20, 0xa0 });
+        DrawText(std::to_string(GetFPS()).c_str(), 10, 6, 40, WHITE);
+
+        DrawRectangle(0, WINDOW_H - 80, WINDOW_W, 80, Color{ 0x20, 0x20, 0x20, 0xa0 });
+
+        DrawText("SPEED", 10, WINDOW_H - 46, 30, WHITE);
+        DrawRectangle(10, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
+        DrawRectangle(10, WINDOW_H - 54, 400 * static_cast<f32>(rover_vel.x * rover_vel.x + rover_vel.y * rover_vel.y) / (MAX_ROVER_VEL * MAX_ROVER_VEL) / 2, 6, Color{ 0x00, 0xff, 0x00, 0xff });
+
+        DrawText("HEADING", 440, WINDOW_H - 46, 30, WHITE);
+        DrawRectangle(440, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
+        DrawRectangle(440 + 200 + 199 * ltsinf(rover_angle), WINDOW_H - 54, 10, 6, Color{ 0x00, 0xff, 0x00, 0xff });
+
+        DrawText("HEALTH", 870, WINDOW_H - 46, 30, WHITE);
+        DrawRectangle(870, WINDOW_H - 54, 400, 6, Color{ 0x0a, 0x0a, 0x0a, 0xff });
+        DrawRectangle(870, WINDOW_H - 54, 400 * world.get_rover().get_health() / Rover::DEFAULT_MAX_HEALTH, 6, Color{ 0x00, 0xff, 0x00, 0xff });
+        
+        if (world.get_rover().get_health() <= 0.0f) {
+            DrawText("GAME OVER", WINDOW_W / 2 - 100, WINDOW_H / 2 - 50, 50, WHITE);
+            EndDrawing();
+            continue;
+        }
 
         EndDrawing();
 
@@ -112,12 +136,12 @@ int main() {
         cam.step(dt_scale);
         world.set_position(cam.get());
 
-        //world.add_position({ 0.0f, -7.0f * dt_scale });
+        world.get_rover().add_health(-0.15f * dt_scale);
 
-        //if (GetTime() > next_asteroid_spawn + 0.5f) {
-        //    world.spawn_asteroid_nearby(world_pos, 2400.0f);
-        //    next_asteroid_spawn = GetTime();
-        //}
+        if (GetTime() > next_asteroid_spawn + 2.5f) {
+            world.spawn_asteroid_nearby(centered_view_of_rover, 2400.0f);
+            next_asteroid_spawn = GetTime();
+        }
     }
 
     //UnloadSound(theme_bgm);
