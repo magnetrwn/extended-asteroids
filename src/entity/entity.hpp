@@ -94,14 +94,28 @@ public:
 
     void set_position(f32_2 position) { this->position = position; }
     void set_velocity(f32_2 velocity) { this->velocity = velocity; }
-    void add_position(f32_2 position) { this->position.x += position.x; this->position.y += position.y; }
-    void add_velocity(f32_2 velocity) { this->velocity.x += velocity.x; this->velocity.y += velocity.y; }
     void set_angle(f32 angle) { this->angle = angle; }
     void set_angular_velocity(f32 angular_velocity) { this->angular_velocity = angular_velocity; }
+
+    void add_position(f32_2 position) { this->position.x += position.x; this->position.y += position.y; }
+    void add_velocity(f32_2 velocity) { this->velocity.x += velocity.x; this->velocity.y += velocity.y; }
+    void add_angle(f32 angle) { this->angle += angle; }
+    void add_angular_velocity(f32 angular_velocity) { this->angular_velocity += angular_velocity; }
 
     usize get_entity_vtx_count() const { return shape->data().vtx_count + 1; }
 
     const f32_2* get_entity_vtx_array() {
+        return rel_vertexes;
+    }
+
+    void step(f32 dt_scale) {
+        position.x += velocity.x * dt_scale;
+        position.y += velocity.y * dt_scale;
+        angle += angular_velocity * dt_scale;
+
+        update_bounding_box();
+        DrawRectangleLines(bounding_box[0].x, bounding_box[0].y, bounding_box[1].x - bounding_box[0].x, bounding_box[1].y - bounding_box[0].y, RED);
+    
         const usize vtx_count = shape->data().vtx_count;
         const f32_2* vertexes = shape->data().vertexes;
 
@@ -115,15 +129,6 @@ public:
         }
         rel_vertexes[vtx_count] = rel_vertexes[0];
         
-        return rel_vertexes;
-    }
-
-    void step(f32 dt_scale = 1.0f) {
-        position.x += velocity.x * dt_scale;
-        position.y += velocity.y * dt_scale;
-        angle += angular_velocity * dt_scale;
-
-        update_bounding_box();
     }
 
     bool is_collision(const Entity& other) const {

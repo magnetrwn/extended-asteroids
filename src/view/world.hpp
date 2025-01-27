@@ -1,8 +1,11 @@
 #ifndef WORLD_HPP_
 #define WORLD_HPP_
 
+#include <vector>
+
 #include "typedef.hpp"
 #include "asteroid.hpp"
+#include "rover.hpp"
 #include "ltmath.hpp"
 
 using namespace LookupTableMath;
@@ -16,25 +19,30 @@ using namespace LookupTableMath;
  * respawned by the game logic. Also, when coming into view of a hidden asteroid, it will be unculled
  * and start acting normally, creating a more explorable world (perhaps).
  *
+ * By changing the type of asteroids, you could technically store everything on the stack.
+ *
  * @note The game logic is supposed to spawn (reuse) more asteroids, otherwise during the game cycle, all asteroids
  * will eventually move out of view and never come back.
  */
 class World {
 private:
-    static constexpr usize CIRCULAR_BUFFER_ASTEROIDS = 192;
-    static constexpr f32 COLLISION_PUSHBACK = 0.04f;
-    static constexpr f32 CULLING_MARGIN = 3600.0f;
-    static constexpr f32 RANDOMIZER_RANGE = 19000.0f;
+    static constexpr usize CIRCULAR_BUFFER_ASTEROIDS = 864;
+    static constexpr f32 COLLISION_PUSHBACK = 0.015f;
+    static constexpr f32 COLLISION_PUSHBACK_ROVER_V = -2.0f;
+    static constexpr f32 CULLING_MARGIN = 1600.0f;
+    static constexpr f32 RANDOMIZER_RANGE = 50000.0f;
 
     struct AsteroidCull {
         Asteroid el;
         bool out_of_view = false;
     };
 
-    AsteroidCull asteroids[CIRCULAR_BUFFER_ASTEROIDS];
+    std::vector<AsteroidCull> asteroids;
     usize circular_index = 0;
     f32_2 position;
     f32_2 culling_viewport;
+
+    Rover rover;
 
     void next_index() {
         circular_index = (circular_index + 1) % CIRCULAR_BUFFER_ASTEROIDS;
@@ -42,9 +50,13 @@ private:
 
 public:
     World(f32_2 position, f32_2 culling_viewport) : position(position), culling_viewport(culling_viewport) {
+        asteroids.resize(CIRCULAR_BUFFER_ASTEROIDS);
+
         for (usize i = 0; i < get_asteroid_count(); ++i)
             randomize_asteroid(i);
     }
+
+    Rover& get_rover() { return rover; }
 
     f32_2 get_position() const { return position; }
     void set_position(f32_2 position) { this->position = position; }
@@ -101,7 +113,7 @@ public:
         }
     }
 
-    void step(f32 dt_scale = 1.0f) {
+    void step(f32 dt_scale) {
         for (usize i = 0; i < get_asteroid_count(); ++i) {
             const f32_2 astpos = asteroids[i].el.get_position();
             asteroids[i].out_of_view = (
@@ -126,6 +138,34 @@ public:
                     asteroids[j].el.add_position({ (pos_j.x - pos_i.x) * COLLISION_PUSHBACK * dt_scale, (pos_j.y - pos_i.y) * COLLISION_PUSHBACK * dt_scale });
                 }
             }
+
+            //DrawCircle(pos_r.x, pos_r.y, 5.0f, RED);
+
+            if (rover.is_collision(asteroids[i].el)) {
+                const f32_2 pos_i = asteroids[i].el.get_position();
+                const f32_2 pos_r = { rover.get_position().x - position.x, rover.get_position().y - position.y };
+                const f32_2 vel_i = asteroids[i].el.get_velocity();
+                const f32_2 vel_r = rover.get_velocity();
+
+                asteroids[i].el.add_position(
+                    { 
+                        (pos_i.x - pos_r.x) * COLLISION_PUSHBACK * dt_scale, 
+                        (pos_i.y - pos_r.y) * COLLISION_PUSHBACK * dt_scale 
+                    }
+                );
+                rover.add_position(
+                    { 
+                        (pos_r.x - pos_i.x) * COLLISION_PUSHBACK * dt_scale, 
+                        (pos_r.y - pos_i.y) * COLLISION_PUSHBACK * dt_scale
+                    }
+                );
+                rover.add_velocity(
+                    { 
+                        (vel_r.x - vel_i.x) * COLLISION_PUSHBACK_ROVER_V * dt_scale, 
+                        (vel_r.y - vel_i.y) * COLLISION_PUSHBACK_ROVER_V * dt_scale 
+                    }
+                );
+            }
         }
 
         for (usize i = 0; i < get_asteroid_count(); ++i) {
@@ -134,6 +174,8 @@ public:
             
             asteroids[i].el.step(dt_scale);
         }
+
+        rover.step(dt_scale);
     }
 
     Asteroid& get_asteroid(usize index) {

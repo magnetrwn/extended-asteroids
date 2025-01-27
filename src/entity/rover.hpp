@@ -3,6 +3,9 @@
 
 #include "typedef.hpp"
 #include "entity.hpp"
+#include "ltmath.hpp"
+
+using namespace LookupTableMath;
 
 /**
  * @brief The shape of a rover.
@@ -13,13 +16,15 @@ struct RoverShape : public EntityShape {
     void init_shape() {
         f32_2* vertexes = data().vertexes;
 
-        vertexes[0] = { 0.0f, 40.0f };
-        vertexes[1] = { 32.0f, -32.0f };
-        vertexes[2] = { 0.0f, -16.0f };
-        vertexes[3] = { -32.0f, -32.0f };
+        vertexes[0] = { 0.0f, -40.0f };
+        vertexes[1] = { -16.0f, -4.0f };
+        vertexes[2] = { -32.0f, 32.0f };
+        vertexes[3] = { 0.0f, 16.0f };
+        vertexes[4] = { 32.0f, 32.0f };
+        vertexes[5] = { 16.0f, -4.0f };
     }
 
-    RoverShape() : EntityShape(4) { init_shape(); }
+    RoverShape() : EntityShape(6) { init_shape(); }
 };
 
 /**
@@ -28,9 +33,70 @@ struct RoverShape : public EntityShape {
 class Rover : public Entity {
 private:
     RoverShape shape;
+    f32_2 triangle_pair[6];
 
 public:
+    enum Direction {
+        UP, DOWN, LEFT, RIGHT
+    };
+
     Rover() : Entity(&shape) {}
+
+    void add_velocity_forward(f32 velocity_mod) {
+        const f32 fwd_angle = angle - M_PI / 2.0f;
+
+        add_velocity({ velocity_mod * ltcosf(fwd_angle), velocity_mod * ltsinf(fwd_angle) });
+    }
+
+    void dampen_velocity(f32 dampening) {
+        velocity.x *= dampening;
+        velocity.y *= dampening;
+    }
+
+    void dampen_angular_velocity(f32 dampening) {
+        angular_velocity *= dampening;
+    }
+
+    const f32_2* get_triangle_pair(Direction direction) {
+        const f32_2* vtx = shape.data().vertexes;
+
+        switch (direction) {
+        case DOWN:
+            triangle_pair[0] = vtx[0];
+            triangle_pair[1] = vtx[1];
+            triangle_pair[2] = vtx[3];
+            triangle_pair[3] = vtx[0];
+            triangle_pair[4] = vtx[5];
+            triangle_pair[5] = vtx[3];
+            break;
+        case UP:
+            triangle_pair[0] = vtx[1];
+            triangle_pair[1] = vtx[2];
+            triangle_pair[2] = vtx[3];
+            triangle_pair[3] = vtx[5];
+            triangle_pair[4] = vtx[4];
+            triangle_pair[5] = vtx[3];
+            break;
+        case RIGHT:
+            triangle_pair[0] = vtx[0];
+            triangle_pair[1] = vtx[1];
+            triangle_pair[2] = vtx[3];
+            triangle_pair[3] = vtx[2];
+            triangle_pair[4] = vtx[3];
+            triangle_pair[5] = vtx[1];
+            break;
+        case LEFT:
+            triangle_pair[0] = vtx[0];
+            triangle_pair[1] = vtx[3];
+            triangle_pair[2] = vtx[5];
+            triangle_pair[3] = vtx[3];
+            triangle_pair[4] = vtx[4];
+            triangle_pair[5] = vtx[5];
+            break;
+        }
+
+        return triangle_pair;
+    }
 };
 
 #endif
