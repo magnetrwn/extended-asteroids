@@ -1,4 +1,9 @@
 compile_commands.json
+.vscode/
 bin/
 build/
 .cache/
+lib/raylib/include/raylib.h
+lib/raylib/include/raymath.h
+lib/raylib/include/rlgl.h
+lib/raylib/lib/libraylib.a

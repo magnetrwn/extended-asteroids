@@ -187,7 +187,7 @@ public:
 
             if (rover.is_collision(asteroids[i].el)) {
                 const f32_2 pos_i = asteroids[i].el.get_position();
-                const f32_2 pos_r = { rover.get_position().x - position.x, rover.get_position().y - position.y };
+                const f32_2 pos_r = rover.get_position();
                 const f32_2 vel_i = asteroids[i].el.get_velocity();
                 const f32_2 vel_r = rover.get_velocity();
 
